@@ -8,9 +8,9 @@ class MyKeyListener implements KeyListener {
     private long lastKeyRelease;
     private final long startTime;
 
-    private final ClickLogger plugin;
+    private final ClickLoggerPlugin plugin;
 
-    public MyKeyListener(ClickLogger plugin, long startTime) {
+    public MyKeyListener(ClickLoggerPlugin plugin, long startTime) {
         this.plugin = plugin;
         this.startTime = startTime;
     }
@@ -19,6 +19,8 @@ class MyKeyListener implements KeyListener {
     public void keyPressed(KeyEvent e) {
         lastKeyPress = e.getWhen() - startTime;
         plugin.getLog().info("Key press: keycode " + e.getKeyCode() + " at " + lastKeyPress);
+
+
     }
 
     @Override

@@ -7,7 +7,7 @@ public class ExamplePluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(ClickLogger.class);
+		ExternalPluginManager.loadBuiltin(ClickLoggerPlugin.class);
 		RuneLite.main(args);
 	}
 }

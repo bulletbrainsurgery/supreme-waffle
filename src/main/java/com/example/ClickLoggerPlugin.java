@@ -14,7 +14,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import org.slf4j.Logger;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,7 +29,7 @@ import static net.runelite.client.RuneLite.RUNELITE_DIR;
 	name = "Click Tracker",
 	enabledByDefault = false
 )
-public class ClickLogger extends Plugin
+public class ClickLoggerPlugin extends Plugin
 {
 	@Inject
 	private Client client;
@@ -39,9 +39,26 @@ public class ClickLogger extends Plugin
 
 	private final ArrayList<LogEntry> buffer = new ArrayList<>();
 
+	private BufferedWriter bw;
+
 	@Override
 	protected void startUp()
 	{
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss");
+		String time = formatter.format(LocalDateTime.now());
+
+		try {
+			Path path = Files.createDirectories(Paths.get(
+					RUNELITE_DIR.getPath(), "click-logger"));
+			File file = new File(String.valueOf(path.resolve(time)));
+			file.createNewFile();
+			FileWriter writer = new FileWriter(file);
+			bw = new BufferedWriter(writer);
+		}
+		catch (IOException ex){
+			log.warn("Error creating log file?: {}", ex.getMessage());
+		}
+
 		log.info("Click tracker starting!");
 		long startTime = System.currentTimeMillis();
 
@@ -55,10 +72,16 @@ public class ClickLogger extends Plugin
 	@Override
 	protected void shutDown()
 	{
+
 		log.info("Click tracker shutting down!");
 		client.getCanvas().removeKeyListener(myKeyListener);
 		client.getCanvas().removeMouseListener(myMouseListener);
 		writeLog();
+		try {
+			bw.close();
+		} catch (IOException ex) {
+			log.warn("[shutdown] error writing file: {}", ex.getMessage());
+		}
 	}
 
 	Logger getLog() {
@@ -71,14 +94,15 @@ public class ClickLogger extends Plugin
 	}
 
 	@Provides
-	ClickLogConfig provideConfig(ConfigManager configManager)
+	ClickLoggerConfig provideConfig(ConfigManager configManager)
 	{
-		return configManager.getConfig(ClickLogConfig.class);
+		return configManager.getConfig(ClickLoggerConfig.class);
 	}
 
-	void appendLog(String log){
+	void appendLog(LogEntry logEntry){
+		buffer.add(logEntry);
 
-		if (buffer.size() >= 50){
+		if (buffer.size() >= 100){
 			writeLog();
 		}
 	}
@@ -89,27 +113,22 @@ public class ClickLogger extends Plugin
 		if (player == null)
 			return;
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss");
-		String time = formatter.format(LocalDateTime.now());
-
-		toFile(player.getName(), fileName(time, true));
-
-		buffer.clear();
-	}
-
-	private void toFile(String username, String filename, String contents) {
-		try {
-			Path path = Files.createDirectories(Paths.get(
-					RUNELITE_DIR.getPath(), "click-logger", username));
-			Files.write(path.resolve(filename), contents.getBytes());
+		try
+		{
+			for (LogEntry entry : buffer) {
+				String toWrite = entry.gameTick + " ["+ entry.timestamp+"]: "+entry.event;
+				bw.write(toWrite);
+			}
+			buffer.clear();
 		} catch (IOException ex) {
-			log.debug("Error writing file: {}", ex.getMessage());
+			log.warn("Error writing file: {}", ex.getMessage());
 		}
+
 	}
 }
 
 class LogEntry {
 	String timestamp;
 	int gameTick;
-	String entry;
+	String event;
 }

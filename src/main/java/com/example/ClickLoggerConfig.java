@@ -5,7 +5,7 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
 @ConfigGroup("clicklogger")
-public interface ClickLogConfig extends Config
+public interface ClickLoggerConfig extends Config
 {
 	@ConfigItem(
 		keyName = "priority",

@@ -8,9 +8,9 @@ class MyMouseListener implements MouseListener {
     private long lastMouseRelease = -1;
     private final long startTime;
 
-    private final ClickLogger plugin;
+    private final ClickLoggerPlugin plugin;
 
-    public MyMouseListener(ClickLogger plugin, long startTime) {
+    public MyMouseListener(ClickLoggerPlugin plugin, long startTime) {
         this.plugin = plugin;
         this.startTime = startTime;
     }
