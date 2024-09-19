@@ -10,6 +10,7 @@ import net.runelite.api.Player;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ClientShutdown;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class ClickLoggerPlugin extends Plugin
 		try {
 			Path path = Files.createDirectories(Paths.get(
 					RUNELITE_DIR.getPath(), "click-logger"));
-			File file = new File(String.valueOf(path.resolve(time)));
+			File file = new File(String.valueOf(path.resolve(time+".log")));
 			file.createNewFile();
 			FileWriter writer = new FileWriter(file);
 			bw = new BufferedWriter(writer);
@@ -81,6 +82,17 @@ public class ClickLoggerPlugin extends Plugin
 			bw.close();
 		} catch (IOException ex) {
 			log.warn("[shutdown] error writing file: {}", ex.getMessage());
+		}
+	}
+
+	@Inject
+	protected void onClientShutdown(ClientShutdown event){
+		log.info("Client close!");
+		writeLog();
+		try {
+			bw.close();
+		} catch (IOException ex) {
+			log.warn("[clientclose] error writing file: {}", ex.getMessage());
 		}
 	}
 
